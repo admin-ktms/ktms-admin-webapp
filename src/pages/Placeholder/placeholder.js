@@ -1,0 +1,1 @@
+import {renderAdminShell} from '../../layout/AdminShell.js';export function renderPlaceholder(title='Module'){renderAdminShell({title,content:'<div class="empty-state"><p class="eyebrow">FOUNDATION</p><h2>Module not implemented</h2><p>This area is reserved for its dependency-ordered KTMS implementation step.</p></div>'});}
