@@ -32,15 +32,24 @@ const pages = {
 
 registerRoute('/', () => routeProtected(renderDashboard));
 registerRoute('/dashboard', () => routeProtected(renderDashboard));
-registerRoute('/login', renderLogin);
+registerRoute('/login', routeLogin);
 
 for (const [path, title] of Object.entries(pages)) {
   registerRoute(path, () => routeProtected(() => renderPlaceholder(title)));
 }
 
+async function routeLogin() {
+  const restored = await auth.restoreSession().catch(() => null);
+  if (restored) {
+    window.history.replaceState({}, '', '/dashboard');
+    return renderDashboard();
+  }
+  return renderLogin();
+}
+
 async function routeProtected(render) {
-  const session = await auth.getSession().catch(() => null);
-  if (!session?.access_token || !auth.getAdminSession()) {
+  const restored = await auth.restoreSession().catch(() => null);
+  if (!restored) {
     window.history.replaceState({}, '', '/login');
     return renderLogin();
   }
