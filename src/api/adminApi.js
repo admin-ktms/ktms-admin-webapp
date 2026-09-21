@@ -25,10 +25,6 @@ async function parseResponse(response) {
   return body?.data;
 }
 
-/**
- * Canonical transport for authenticated KTMS Admin API signals.
- * Business action names and payloads are supplied by verified feature modules.
- */
 export async function sendAdminSignal(action, payload = {}) {
   if (!action || typeof action !== 'string') {
     throw new TypeError('A KTMS Admin API action is required.');
@@ -56,7 +52,17 @@ export async function sendAdminSignal(action, payload = {}) {
   try {
     return await parseResponse(response);
   } catch (error) {
-    if (error.status === 401) clearAdminSession();
+    if (
+      error.status === 401 ||
+      error.code === 'ADMIN_SESSION_INVALID' ||
+      error.code === 'ADMIN_SESSION_EXPIRED' ||
+      error.code === 'ADMIN_SESSION_REQUIRED'
+    ) {
+      clearAdminSession();
+      window.dispatchEvent(new CustomEvent('ktms:session-expired', {
+        detail: { code: error.code || 'ADMIN_SESSION_INVALID', traceId: error.traceId || null }
+      }));
+    }
     throw error;
   }
 }
