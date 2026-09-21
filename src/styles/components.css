@@ -143,3 +143,5 @@
   margin-top: 16px;
   font-size: 13px;
 }
+
+.startup-error { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ktms-tertiary); background: var(--ktms-bg); border: 1px solid var(--ktms-border); padding: 12px; border-radius: var(--radius-sm); font-size: 12px; }
