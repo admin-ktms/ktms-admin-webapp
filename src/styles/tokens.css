@@ -1,0 +1,17 @@
+:root {
+  --ktms-bg: #080A0F;
+  --ktms-surface: #11151D;
+  --ktms-border: #252B36;
+  --ktms-primary: #00D9FF;
+  --ktms-secondary: #8B95A5;
+  --ktms-tertiary: #FFC857;
+  --ktms-text: #F5F7FA;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --sidebar-width: 238px;
+  --topbar-height: 68px;
+  --content-max-width: 1440px;
+}
