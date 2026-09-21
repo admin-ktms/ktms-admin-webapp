@@ -39,11 +39,14 @@ for (const [path, title] of Object.entries(pages)) {
 }
 
 async function routeLogin() {
+  if (window.location.pathname !== '/login') return;
+
   const restored = await auth.restoreSession().catch(() => null);
   if (restored) {
     window.history.replaceState({}, '', '/dashboard');
     return renderDashboard();
   }
+
   return renderLogin();
 }
 
@@ -56,9 +59,13 @@ async function routeProtected(render) {
   return render();
 }
 
-window.addEventListener('popstate', () => startRouter());
+window.addEventListener('popstate', () => {
+  startRouter().catch(handleStartupFailure);
+});
 
-startRouter().catch((error) => {
+startRouter().catch(handleStartupFailure);
+
+function handleStartupFailure(error) {
   console.error('KTMS Admin startup failure:', error);
   document.querySelector('#app').innerHTML = `
     <main class="login-page">
@@ -66,7 +73,17 @@ startRouter().catch((error) => {
         <div class="login-brand">KTMS ADMIN</div>
         <h1>Application startup failed</h1>
         <p class="muted">The Admin Web App could not initialize.</p>
-        <pre class="startup-error">${String(error?.message || error)}</pre>
+        <pre class="startup-error">${escapeHtml(error?.message || error)}</pre>
       </section>
-    </main>`;
-});
+    </main>
+  `;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
