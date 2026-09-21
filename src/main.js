@@ -3,7 +3,9 @@ import './styles/shell.css';
 import './styles/components.css';
 
 import { startRouter, registerRoute } from './app/router.js';
+import { auth } from './auth/auth.js';
 import { renderDashboard } from './pages/Dashboard/dashboard.js';
+import { renderLogin } from './pages/Login/login.js';
 import { renderPlaceholder } from './pages/Placeholder/placeholder.js';
 
 const pages = {
@@ -28,12 +30,22 @@ const pages = {
   '/game-master-security': 'GM Security',
 };
 
-registerRoute('/dashboard', renderDashboard);
+registerRoute('/', () => routeProtected(renderDashboard));
+registerRoute('/dashboard', () => routeProtected(renderDashboard));
+registerRoute('/login', renderLogin);
 
 for (const [path, title] of Object.entries(pages)) {
-  registerRoute(path, () => renderPlaceholder(title));
+  registerRoute(path, () => routeProtected(() => renderPlaceholder(title)));
+}
+
+async function routeProtected(render) {
+  const session = await auth.getSession().catch(() => null);
+  if (!session?.access_token || !auth.getAdminSession()) {
+    window.history.replaceState({}, '', '/login');
+    return renderLogin();
+  }
+  return render();
 }
 
 window.addEventListener('popstate', () => startRouter());
-
 startRouter();
