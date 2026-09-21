@@ -4,7 +4,13 @@
 .brand{display:inline-flex;align-items:center;gap:10px;min-width:0;color:var(--ktms-foreground);font-weight:750;letter-spacing:.02em}
 .brand small{margin-left:4px;color:var(--ktms-secondary);font-size:9px;letter-spacing:.1em}
 .brand-mark{width:30px;height:30px;display:grid;place-items:center;flex:none;border:1px solid rgba(0,217,255,.35);border-radius:8px;color:var(--ktms-primary);font-size:11px;font-weight:800}
-.topbar-context{color:var(--ktms-secondary);font-size:13px}
+.admin-identity{display:flex;align-items:center;gap:16px}
+.admin-identity-copy{display:grid;gap:2px;text-align:right}
+.admin-identity-copy strong{color:var(--ktms-foreground);font-size:12px;font-weight:650}
+.admin-identity-copy span{color:var(--ktms-secondary);font-size:10px;text-transform:capitalize}
+.logout-button{min-height:32px;padding:0 11px;border:1px solid var(--ktms-border);border-radius:7px;background:transparent;color:var(--ktms-secondary);font-size:11px;font-weight:650;cursor:pointer}
+.logout-button:hover{border-color:rgba(0,217,255,.35);color:var(--ktms-primary)}
+.logout-button:disabled{opacity:.55;cursor:not-allowed}
 .shell-body{min-height:100vh}
 .sidebar{position:fixed;top:var(--topbar-height);bottom:0;left:0;z-index:10;width:var(--sidebar-width);padding:18px 12px;overflow-y:auto;background:var(--ktms-surface);border-right:1px solid var(--ktms-border)}
 .sidebar nav{display:grid;gap:3px}
@@ -17,10 +23,11 @@
 .page-content{width:min(100%,var(--content-width));margin:0 auto}
 @media (max-width:800px){
   .topbar{padding:0 16px}
+  .admin-identity-copy{display:none}
   .sidebar{position:sticky;top:var(--topbar-height);width:100%;height:auto;padding:8px 12px;border-right:0;border-bottom:1px solid var(--ktms-border)}
   .sidebar nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
   .sidebar nav::-webkit-scrollbar{display:none}
   .sidebar a{white-space:nowrap}
   .main-content{margin-left:0;padding:24px 16px 32px}
 }
-@media (max-width:520px){.topbar-context{display:none}.page-heading h1{font-size:23px}}
+@media (max-width:520px){.topbar-context{display:none}.page-heading h1{font-size:23px}.logout-button{padding:0 9px}}
