@@ -38,7 +38,6 @@ export async function adminApi(path, options = {}) {
       ['INVALID_SESSION', 'ADMIN_SESSION_REQUIRED', 'ADMIN_SESSION_INVALID', 'ADMIN_SESSION_EXPIRED'].includes(errorCode)
     ) {
       clearAdminSession();
-      await auth.getSupabase?.();
       window.history.replaceState({}, '', '/login');
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
