@@ -1,0 +1,1 @@
+// Compatibility placeholder. Use src/api/adminApi.js as the single canonical Admin API client.
