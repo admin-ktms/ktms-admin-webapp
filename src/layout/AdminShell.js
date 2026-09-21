@@ -26,14 +26,23 @@ const links = [
 
 const sectionFor = (label) => {
   if (['Dashboard'].includes(label)) return 'Command';
-  if (['Tournaments','Registrations','Players','Accounts','Payments'].includes(label)) return 'Core';
-  if (['Matchdays','Groups','Fixtures','Results','Standings','Progression','Awards'].includes(label)) return 'Competition';
-  if (['Notifications','Support'].includes(label)) return 'Engagement';
+  if (['Tournaments', 'Registrations', 'Players', 'Accounts', 'Payments'].includes(label)) return 'Core';
+  if (['Matchdays', 'Groups', 'Fixtures', 'Results', 'Standings', 'Progression', 'Awards'].includes(label)) return 'Competition';
+  if (['Notifications', 'Support'].includes(label)) return 'Engagement';
   return 'Administration';
 };
 
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+
 export async function renderShell(renderPage, title = 'Dashboard') {
   const path = window.location.pathname;
+  const admin = auth.getAdmin();
   const groups = [...new Set(links.map(([label]) => sectionFor(label)))];
 
   document.querySelector('#app').innerHTML = `
@@ -47,15 +56,25 @@ export async function renderShell(renderPage, title = 'Dashboard') {
           `).join('')}
         `).join('')}
       </aside>
+
       <main class="main">
         <header class="topbar">
-          <div><strong>${title}</strong></div>
+          <div class="topbar-title">
+            <strong>${escapeHtml(title)}</strong>
+          </div>
+
           <div class="topbar-actions">
-            <div class="role-label">Game Master</div>
+            <div class="admin-identity">
+              <strong>${escapeHtml(admin?.display_name || 'Administrator')}</strong>
+              <span class="role-label">${escapeHtml(admin?.role || 'Administrator')}</span>
+            </div>
             <button class="button topbar-logout" id="logout-button" type="button">Sign out</button>
           </div>
         </header>
-        <div class="content"><div class="page">${renderPage()}</div></div>
+
+        <div class="content">
+          <div class="page">${renderPage()}</div>
+        </div>
       </main>
     </div>
   `;
