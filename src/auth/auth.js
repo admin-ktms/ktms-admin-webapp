@@ -14,7 +14,11 @@ async function loginService(action, payload) {
 
   const response = await fetch(config.adminLoginUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      apikey: config.supabaseAnonKey,
+    },
     body: JSON.stringify({ action, ...payload }),
   });
 
