@@ -15,14 +15,22 @@ async function request(action, payload = {}) {
     throw error;
   }
 
+  if (!config.supabaseAnonKey) {
+  const error = new Error('VITE_SUPABASE_ANON_KEY is not configured.');
+  error.code = 'SUPABASE_ANON_KEY_REQUIRED';
+  error.status = 500;
+  throw error;
+}
+
   const response = await fetch(config.adminApiUrl, {
     method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-KTMS-Admin-Session': session,
-      'X-KTMS-Trace-ID': traceId(),
-    },
+     headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    apikey: config.supabaseAnonKey,
+    'X-KTMS-Admin-Session': session,
+    'X-KTMS-Trace-ID': traceId(),
+  },
     body: JSON.stringify({ action, ...payload }),
   });
 
