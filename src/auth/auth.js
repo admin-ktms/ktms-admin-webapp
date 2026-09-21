@@ -14,7 +14,8 @@ async function loginRequest(action, payload) {
     method: 'POST',
     headers: {
       Accept: 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      apikey: config.publishableKey
     },
     body: JSON.stringify({ action, ...payload })
   });
