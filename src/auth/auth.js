@@ -17,7 +17,6 @@ async function loginService(action, payload) {
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      apikey: config.supabaseAnonKey,
     },
     body: JSON.stringify({ action, ...payload }),
   });
