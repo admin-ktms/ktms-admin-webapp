@@ -12,13 +12,13 @@ export async function renderLogin() {
         <form id="otp-request-form">
           <label class="field-label" for="email">Administrator email</label>
           <input class="field" id="email" type="email" autocomplete="email" required />
-          <button class="button primary" type="submit">Send verification code</button>
+          <button class="button primary" id="request-button" type="submit">Send verification code</button>
         </form>
 
         <form id="otp-verify-form" hidden>
           <label class="field-label" for="token">Verification code</label>
           <input class="field" id="token" inputmode="numeric" autocomplete="one-time-code" required />
-          <button class="button primary" type="submit">Verify and enter KTMS</button>
+          <button class="button primary" id="verify-button" type="submit">Verify and enter KTMS</button>
           <button class="button secondary" id="back-button" type="button">Use another email</button>
         </form>
 
@@ -31,11 +31,15 @@ export async function renderLogin() {
   const verifyForm = document.querySelector('#otp-verify-form');
   const emailInput = document.querySelector('#email');
   const tokenInput = document.querySelector('#token');
+  const requestButton = document.querySelector('#request-button');
+  const verifyButton = document.querySelector('#verify-button');
   const status = document.querySelector('#login-status');
 
   requestForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    requestButton.disabled = true;
     status.textContent = 'Sending verification code…';
+
     try {
       await auth.requestOtp(emailInput.value.trim());
       requestForm.hidden = true;
@@ -44,17 +48,22 @@ export async function renderLogin() {
       status.textContent = 'Verification code sent. Check your email.';
     } catch (error) {
       status.textContent = error.message;
+    } finally {
+      requestButton.disabled = false;
     }
   });
 
   verifyForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    verifyButton.disabled = true;
     status.textContent = 'Verifying…';
+
     try {
       await auth.verifyOtp(emailInput.value.trim(), tokenInput.value.trim());
       navigate('/dashboard');
     } catch (error) {
       status.textContent = error.message;
+      verifyButton.disabled = false;
     }
   });
 
