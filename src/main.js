@@ -48,4 +48,16 @@ async function routeProtected(render) {
 }
 
 window.addEventListener('popstate', () => startRouter());
-startRouter();
+
+startRouter().catch((error) => {
+  console.error('KTMS Admin startup failure:', error);
+  document.querySelector('#app').innerHTML = `
+    <main class="login-page">
+      <section class="login-card surface">
+        <div class="login-brand">KTMS ADMIN</div>
+        <h1>Application startup failed</h1>
+        <p class="muted">The Admin Web App could not initialize.</p>
+        <pre class="startup-error">${String(error?.message || error)}</pre>
+      </section>
+    </main>`;
+});
