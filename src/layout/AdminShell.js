@@ -1,3 +1,6 @@
+import { getCurrentAdmin, signOut } from '../auth/auth.js';
+import { navigate } from '../app/router.js';
+
 const NAV_ITEMS = [
   ['/', 'Overview'],
   ['/tournaments', 'Tournaments'],
@@ -19,8 +22,13 @@ function currentPath() {
   return window.location.pathname.replace(/\/$/, '') || '/';
 }
 
+function roleLabel(role) {
+  return String(role || '').replaceAll('_', ' ');
+}
+
 export function renderAdminShell({ title = 'Dashboard', content = '' } = {}) {
   const path = currentPath();
+  const admin = getCurrentAdmin();
   const navigation = NAV_ITEMS.map(([href, label]) => {
     const active = href === path;
     return `<a href="${href}" data-route${active ? ' aria-current="page"' : ''}>${label}</a>`;
@@ -33,7 +41,13 @@ export function renderAdminShell({ title = 'Dashboard', content = '' } = {}) {
           <span class="brand-mark">KT</span>
           <span>KTMS <small>ADMIN</small></span>
         </a>
-        <div class="topbar-context">Administrator</div>
+        <div class="admin-identity">
+          <div class="admin-identity-copy">
+            <strong>${escapeHtml(admin?.displayName || 'Administrator')}</strong>
+            <span>${escapeHtml(roleLabel(admin?.role || 'Administrator'))}</span>
+          </div>
+          <button class="logout-button" id="admin-logout" type="button">Sign out</button>
+        </div>
       </header>
       <div class="shell-body">
         <aside class="sidebar">
@@ -49,4 +63,15 @@ export function renderAdminShell({ title = 'Dashboard', content = '' } = {}) {
       </div>
     </div>
   `;
+
+  document.querySelector('#admin-logout')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    button.textContent = 'Signing out…';
+    try {
+      await signOut();
+    } finally {
+      navigate('/login');
+    }
+  });
 }
