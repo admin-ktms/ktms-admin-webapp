@@ -1,4 +1,4 @@
-import { hasAdminSession } from '../auth/session.js';
+import { hasAdminSession, clearAdminSession } from '../auth/session.js';
 
 const routes = new Map();
 let guard = null;
@@ -47,6 +47,15 @@ export async function startRouter() {
     if (!link || event.defaultPrevented) return;
     event.preventDefault();
     navigate(link.getAttribute('href'));
+  });
+
+  window.addEventListener('ktms:session-expired', () => {
+    clearAdminSession();
+    if (window.location.pathname !== '/login') {
+      window.history.replaceState({}, '', '/login');
+    }
+    const loginRoute = routes.get('/login');
+    if (loginRoute) loginRoute.render();
   });
 
   await render();
