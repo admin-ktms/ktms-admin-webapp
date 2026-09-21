@@ -1,6 +1,11 @@
 import { getSupabase } from '../lib/supabase.js';
 import { config } from '../config/config.js';
-import { clearAdminSession, getAdminSession, setAdminSession } from './session.js';
+import {
+  clearAdminSession,
+  getAdminSession,
+  getAdminSessionExpiresAt,
+  setAdminSession,
+} from './session.js';
 
 async function loginService(action, payload) {
   if (!config.adminLoginUrl) throw new Error('VITE_KTMS_ADMIN_LOGIN_URL is not configured.');
@@ -37,7 +42,7 @@ export const auth = {
       refresh_token: data.refreshToken,
     });
 
-    setAdminSession(data.sessionToken);
+    setAdminSession(data.sessionToken, data.adminSessionExpiresAt);
 
     return data.admin;
   },
@@ -55,12 +60,71 @@ export const auth = {
   },
 
   getAdminSession,
+  getAdminSessionExpiresAt,
   setAdminSession,
 
+  async restoreSession() {
+    const session = await this.getSession();
+    const adminSession = getAdminSession();
+
+    if (!session?.access_token || !adminSession) {
+      clearAdminSession();
+      return null;
+    }
+
+    const expiresAt = getAdminSessionExpiresAt();
+    if (expiresAt && new Date(expiresAt).getTime() <= Date.now()) {
+      clearAdminSession();
+      await getSupabase().auth.signOut().catch(() => {});
+      return null;
+    }
+
+    if (!config.adminApiUrl) throw new Error('VITE_KTMS_ADMIN_API_URL is not configured.');
+
+    const response = await fetch(config.adminApiUrl, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        'X-KTMS-Admin-Session': adminSession,
+      },
+      body: JSON.stringify({ action: 'admin.me' }),
+    });
+
+    const body = await response.json().catch(() => null);
+
+    if (!response.ok || !body?.success) {
+      clearAdminSession();
+      await getSupabase().auth.signOut().catch(() => {});
+      return null;
+    }
+
+    return { session, admin: body.data };
+  },
+
   async signOut() {
-    clearAdminSession();
-    const { error } = await getSupabase().auth.signOut();
-    if (error) throw error;
+    const session = await this.getSession().catch(() => null);
+    const adminSession = getAdminSession();
+
+    try {
+      if (session?.access_token && adminSession && config.adminApiUrl) {
+        await fetch(config.adminApiUrl, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            'X-KTMS-Admin-Session': adminSession,
+          },
+          body: JSON.stringify({ action: 'admin.session.logout' }),
+        });
+      }
+    } finally {
+      clearAdminSession();
+      const { error } = await getSupabase().auth.signOut();
+      if (error) throw error;
+    }
   },
 
   onAuthStateChange(callback) {
