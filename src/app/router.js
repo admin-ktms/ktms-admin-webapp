@@ -10,6 +10,9 @@ export const navigate = (path) => {
 };
 
 export const startRouter = async () => {
-  const render = routes.get(window.location.pathname) || routes.get('/dashboard');
-  await render?.();
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const render = routes.get(path) || routes.get('/dashboard');
+
+  if (!render) throw new Error(`No route registered for ${path}`);
+  await render();
 };
