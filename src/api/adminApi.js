@@ -43,6 +43,7 @@ export async function sendAdminSignal(action, payload = {}) {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      apikey: config.publishableKey,
       'X-KTMS-Admin-Session': session,
       'X-KTMS-Trace-ID': traceId()
     },
