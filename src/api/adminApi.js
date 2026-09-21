@@ -15,36 +15,38 @@ async function request(action, payload = {}) {
     throw error;
   }
 
-  if (!config.supabaseAnonKey) {
-  const error = new Error('VITE_SUPABASE_ANON_KEY is not configured.');
-  error.code = 'SUPABASE_ANON_KEY_REQUIRED';
-  error.status = 500;
-  throw error;
-}
-
   const response = await fetch(config.adminApiUrl, {
     method: 'POST',
-     headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    apikey: config.supabaseAnonKey,
-    'X-KTMS-Admin-Session': session,
-    'X-KTMS-Trace-ID': traceId(),
-  },
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-KTMS-Admin-Session': session,
+      'X-KTMS-Trace-ID': traceId(),
+    },
     body: JSON.stringify({ action, ...payload }),
   });
 
   const body = await response.json().catch(() => null);
 
   if (!response.ok || !body?.success) {
-    if (response.status === 401 || ['ADMIN_SESSION_REQUIRED', 'ADMIN_SESSION_INVALID', 'ADMIN_SESSION_EXPIRED'].includes(body?.error?.code)) {
+    if (
+      response.status === 401 ||
+      ['ADMIN_SESSION_REQUIRED', 'ADMIN_SESSION_INVALID', 'ADMIN_SESSION_EXPIRED'].includes(
+        body?.error?.code,
+      )
+    ) {
       clearAdminSession();
     }
 
-    const error = new Error(body?.error?.message || `KTMS Admin API request failed (${response.status}).`);
+    const error = new Error(
+      body?.error?.message || `KTMS Admin API request failed (${response.status}).`,
+    );
     error.status = response.status;
     error.code = body?.error?.code;
-    error.traceId = body?.error?.traceId || response.headers.get('X-KTMS-Trace-ID') || null;
+    error.traceId =
+      body?.error?.traceId ||
+      response.headers.get('X-KTMS-Trace-ID') ||
+      null;
     error.body = body;
     throw error;
   }
