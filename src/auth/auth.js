@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase.js';
+import { getSupabase } from '../lib/supabase.js';
 import { config } from '../config/config.js';
 import { clearAdminSession, getAdminSession, setAdminSession } from './session.js';
 
@@ -32,7 +32,7 @@ export const auth = {
   async verifyOtp(email, token) {
     const data = await loginService('verify', { email, token });
 
-    await supabase.auth.setSession({
+    await getSupabase().auth.setSession({
       access_token: data.accessToken,
       refresh_token: data.refreshToken,
     });
@@ -43,13 +43,13 @@ export const auth = {
   },
 
   async getSession() {
-    const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await getSupabase().auth.getSession();
     if (error) throw error;
     return data.session;
   },
 
   async getUser() {
-    const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await getSupabase().auth.getUser();
     if (error) throw error;
     return data.user;
   },
@@ -59,11 +59,11 @@ export const auth = {
 
   async signOut() {
     clearAdminSession();
-    const { error } = await supabase.auth.signOut();
+    const { error } = await getSupabase().auth.signOut();
     if (error) throw error;
   },
 
   onAuthStateChange(callback) {
-    return supabase.auth.onAuthStateChange(callback);
+    return getSupabase().auth.onAuthStateChange(callback);
   },
 };
