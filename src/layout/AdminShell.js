@@ -50,7 +50,10 @@ export async function renderShell(renderPage, title = 'Dashboard') {
       <main class="main">
         <header class="topbar">
           <div><strong>${title}</strong></div>
-          <div class="role-label">Game Master</div>
+          <div class="topbar-actions">
+            <div class="role-label">Game Master</div>
+            <button class="button topbar-logout" id="logout-button" type="button">Sign out</button>
+          </div>
         </header>
         <div class="content"><div class="page">${renderPage()}</div></div>
       </main>
@@ -62,5 +65,18 @@ export async function renderShell(renderPage, title = 'Dashboard') {
       event.preventDefault();
       navigate(link.getAttribute('href'));
     });
+  });
+
+  document.querySelector('#logout-button').addEventListener('click', async () => {
+    const button = document.querySelector('#logout-button');
+    button.disabled = true;
+    button.textContent = 'Signing out…';
+
+    try {
+      await auth.signOut();
+    } finally {
+      window.history.replaceState({}, '', '/login');
+      await navigate('/login');
+    }
   });
 }
