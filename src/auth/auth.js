@@ -14,6 +14,7 @@ async function loginService(action, payload) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      apikey: config.supabasePublishableKey,
       Accept: 'application/json',
     },
     body: JSON.stringify({ action, ...payload }),
