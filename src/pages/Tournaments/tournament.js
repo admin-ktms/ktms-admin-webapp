@@ -12,8 +12,7 @@ function info(label, value) {
 }
 
 export async function renderTournamentPage(tournamentId, page = 'overview') {
-  const app = document.querySelector('#app');
-  app.innerHTML = '<div class="loading-screen">Loading tournament…</div>';
+  let content = '<div class="loading-screen">Loading tournament…</div>';
   try {
     const tournament = await adminApi.tournaments.get(tournamentId);
     if (!tournament) throw new Error('Tournament was not found.');
@@ -21,11 +20,9 @@ export async function renderTournamentPage(tournamentId, page = 'overview') {
     if (page === 'lifecycle') return renderLifecycle(tournament);
     return renderOverview(tournament);
   } catch (error) {
-    app.innerHTML = renderTournamentContextShell(
-      { tournament_id: tournamentId, tournament_name: 'Tournament unavailable', tournament_status: 'Unavailable' },
-      page,
-      `<div class="error-state"><strong>Unable to load tournament.</strong><p>${esc(error.message)}</p><a class="button button--secondary" href="#/tournaments/all">Back to tournaments</a></div>`,
-    );
+    content = renderTournamentContextShell({ tournament_id: tournamentId, tournament_name: 'Tournament unavailable', tournament_status: 'Unavailable' }, page, `<div class="error-state"><strong>Unable to load tournament.</strong><p>${esc(error.message)}</p><a class="button button--secondary" href="#/tournaments/all">Back to tournaments</a></div>`);
+  }
+  return content;
   }
 }
 
@@ -62,7 +59,7 @@ function renderOverview(t) {
       </div>
     </section>
   `;
-  document.querySelector('#app').innerHTML = renderTournamentContextShell(t,'overview',content);
+  return renderTournamentContextShell(t,'overview',content);
 }
 
 function renderSettings(t) {
@@ -84,7 +81,7 @@ function renderSettings(t) {
     </section>
     <div class="notice">No verified tournament-settings mutation endpoint is currently exposed by the Admin API. The frontend will not invent one.</div>
   `;
-  document.querySelector('#app').innerHTML = renderTournamentContextShell(t,'settings',content);
+  return renderTournamentContextShell(t,'settings',content);
 }
 
 function renderLifecycle(t) {
@@ -110,7 +107,10 @@ function renderLifecycle(t) {
       <p class="muted">Tournament start and archival are not exposed as callable tournament actions by the current Admin API contract, so they are not fabricated here. Completion is exposed and is handled above through the verified Admin API action.</p>
     </section>
   `;
-  document.querySelector('#app').innerHTML = renderTournamentContextShell(t,'lifecycle',content);
+  const shell = renderTournamentContextShell(t,'lifecycle',content);
+  setTimeout(() => bindLifecycleActions(t), 0);
+  return shell;
+function bindLifecycleActions(t) {
   document.querySelectorAll('.lifecycle-action').forEach(button => button.addEventListener('click', async () => {
     button.disabled = true;
     const action = button.dataset.action;
