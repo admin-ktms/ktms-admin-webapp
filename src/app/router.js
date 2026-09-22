@@ -1,6 +1,9 @@
 import { auth } from '../auth/auth.js';
 import { renderLogin } from '../pages/Login/login.js';
 import { renderAdminShell } from '../layout/AdminShell.js';
+import { renderTournamentsOverview, renderAllTournaments } from '../pages/Tournaments/tournaments.js';
+import { renderCreateTournament } from '../pages/Tournaments/create.js';
+import { renderTournamentPage } from '../pages/Tournaments/tournament.js';
 
 const routes = new Map([
   ['/tournaments', 'Tournaments'],
@@ -21,53 +24,42 @@ const routes = new Map([
 ]);
 
 export function resolvePath() {
-  const hash = window.location.hash.replace(/^#/, '');
-  return hash || '/';
+  return window.location.hash.replace(/^#/, '') || '/';
 }
 
 export async function renderRoute() {
   const session = auth.getAdminSession();
-
-  if (!session) {
-    renderLogin();
-    return;
-  }
+  if (!session) { renderLogin(); return; }
 
   try {
     const admin = auth.getAdmin() || await auth.restoreSession();
-    if (!admin) {
-      renderLogin();
-      return;
-    }
+    if (!admin) { renderLogin(); return; }
 
     const path = resolvePath();
-    const title = path === '/' ? 'Dashboard' : routes.get(path) || 'Page not found';
-    const description =
-      path === '/'
-        ? 'KTMS operational overview.'
-        : routes.get(path)
-          ? 'This module will be implemented in the appropriate KTMS frontend phase.'
-          : 'The requested Admin Web App route does not exist.';
 
+    if (path === '/tournaments') return renderTournamentsOverview();
+    if (path === '/tournaments/all') return renderAllTournaments();
+    if (path === '/tournaments/create') return renderCreateTournament();
+
+    const match = path.match(/^\/tournaments\/([^/]+)(?:\/(overview|settings|lifecycle))?$/);
+    if (match) {
+      const tournamentId = decodeURIComponent(match[1]);
+      return renderTournamentPage(tournamentId, match[2] || 'overview');
+    }
+
+    const title = path === '/' ? 'Dashboard' : routes.get(path) || 'Page not found';
+    const description = path === '/' ? 'KTMS operational overview.' : routes.get(path) ? 'This module will be implemented in the appropriate KTMS frontend phase.' : 'The requested Admin Web App route does not exist.';
     document.querySelector('#app').innerHTML = renderAdminShell({
       path,
-      content: `
-        <section>
-          <p style="color:var(--ktms-secondary);margin:0 0 8px">KTMS ADMIN</p>
-          <h1 style="margin:0 0 10px">${title}</h1>
-          <p style="color:var(--ktms-secondary);max-width:720px">${description}</p>
-          <p style="color:var(--ktms-secondary);margin-top:24px">Signed in as ${admin.displayName || admin.email || 'Administrator'}.</p>
-        </section>
-      `,
+      content: `<section><p class="eyebrow">KTMS ADMIN</p><h1>${title}</h1><p class="muted">${description}</p><p class="muted">Signed in as ${admin.displayName || admin.email || 'Administrator'}.</p></section>`,
     });
   } catch (error) {
+    console.error(error);
     renderLogin();
   }
 }
 
 export function startRouter() {
-  window.addEventListener('hashchange', () => {
-    renderRoute();
-  });
+  window.addEventListener('hashchange', renderRoute);
   renderRoute();
 }
