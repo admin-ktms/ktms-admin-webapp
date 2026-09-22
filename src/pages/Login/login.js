@@ -68,13 +68,26 @@ function renderOtp(email) {
         <div class="auth-brand">KTMS ADMIN</div>
         <p class="auth-eyebrow">Verification required</p>
         <h1 id="otp-title">Enter verification code</h1>
-        <p class="auth-copy">A verification code was sent to <strong>${escapeHtml(email)}</strong>.</p>
+        <p class="auth-copy">Two independent verification codes were sent to <strong>${escapeHtml(email)}</strong>. Both are required.</p>
 
         <form id="admin-otp-form" class="auth-form">
-          <label for="admin-otp">Verification code</label>
+          <label for="admin-ktms-otp">KTMS verification code</label>
           <input
-            id="admin-otp"
-            name="token"
+            id="admin-ktms-otp"
+            name="ktmsToken"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            pattern="[0-9]{6}"
+            required
+            placeholder="000000"
+          />
+
+          <label for="admin-supabase-otp">Supabase verification code</label>
+          <input
+            id="admin-supabase-otp"
+            name="supabaseToken"
             type="text"
             inputmode="numeric"
             autocomplete="one-time-code"
@@ -100,7 +113,8 @@ function renderOtp(email) {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    const token = form.token.value.trim();
+    const ktmsToken = form.ktmsToken.value.trim();
+    const supabaseToken = form.supabaseToken.value.trim();
     const button = form.querySelector('button[type="submit"]');
 
     button.disabled = true;
@@ -108,7 +122,7 @@ function renderOtp(email) {
     message.textContent = 'Verifying…';
 
     try {
-      await auth.verifyOtp(email, token);
+      await auth.verifyOtp(email, ktmsToken, supabaseToken);
       window.location.hash = '/';
     } catch (error) {
       message.className = 'auth-message auth-message--error';
@@ -117,5 +131,5 @@ function renderOtp(email) {
     }
   });
 
-  document.querySelector('#admin-otp').focus();
+  document.querySelector('#admin-ktms-otp').focus();
 }
