@@ -109,7 +109,9 @@ function renderOtp(email) {
 
     try {
       await auth.verifyOtp(email, token);
-      window.location.hash = '/';
+      // Move back into the existing Admin App router after successful verification.
+      if (window.location.hash === '#/') window.dispatchEvent(new Event('hashchange'));
+      else window.location.hash = '/';
     } catch (error) {
       message.className = 'auth-message auth-message--error';
       message.textContent = error.message || 'Verification failed.';
