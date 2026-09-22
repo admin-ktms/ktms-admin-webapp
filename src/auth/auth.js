@@ -42,7 +42,7 @@ export const auth = Object.freeze({
 
   async verifyOtp(email, token) {
     const data = await loginService('verify', { email, token });
-    setAdminSession(data.sessionToken, data.adminSessionExpiresAt);
+    setAdminSession({ sessionToken: data.sessionToken, adminSessionExpiresAt: data.adminSessionExpiresAt, accessToken: data.accessToken, accessTokenExpiresAt: data.expiresAt, refreshToken: data.refreshToken });
     currentAdmin = data.admin;
     return data.admin;
   },
