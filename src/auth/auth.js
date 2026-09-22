@@ -1,5 +1,6 @@
 import { config } from '../config/config.js';
 import { adminApi } from '../api/adminApi.js';
+import { supabase } from '../lib/supabase.js';
 import {
   getAdminSessionData,
   setAdminSession,
@@ -23,7 +24,7 @@ async function loginRequest(action, payload) {
   const body = await response.json().catch(() => null);
   if (!response.ok || body?.success === false) {
     const error = new Error(
-      body?.error?.message || `KTMS administrator login failed (${response.status}).`
+      body?.error?.message || 'KTMS administrator login failed (' + response.status + ').'
     );
     error.status = response.status;
     error.code = body?.error?.code || null;
@@ -43,17 +44,34 @@ export async function verifyOtp(email, token) {
     token: String(token || '').trim()
   });
 
-  setAdminSession(
-    data.sessionToken,
-    data.admin,
-    data.adminSessionExpiresAt
-  );
+  const { error: sessionError } = await supabase.auth.setSession({
+    access_token: data.accessToken,
+    refresh_token: data.refreshToken
+  });
+
+  if (sessionError) {
+    throw Object.assign(
+      new Error('Supabase authentication session could not be established: ' + sessionError.message),
+      { code: 'SUPABASE_SESSION_ESTABLISH_FAILED', status: 502 }
+    );
+  }
+
+  setAdminSession(data.sessionToken, data.admin, data.adminSessionExpiresAt);
   currentAdmin = data.admin || null;
   return data;
 }
 
 export async function restoreSession() {
-  if (!getAdminSessionData()?.sessionToken) return null;
+  const ktmsSession = getAdminSessionData()?.sessionToken;
+  if (!ktmsSession) return null;
+
+  const { data: authData, error: authError } = await supabase.auth.getSession();
+  if (authError || !authData?.session?.access_token) {
+    await supabase.auth.signOut().catch(() => {});
+    clearAdminSession();
+    currentAdmin = null;
+    return null;
+  }
 
   try {
     const admin = await adminApi.send('admin.me');
@@ -62,6 +80,7 @@ export async function restoreSession() {
     return currentAdmin;
   } catch (error) {
     if (error.status === 401 || error.status === 403) {
+      await supabase.auth.signOut().catch(() => {});
       clearAdminSession();
       currentAdmin = null;
     }
@@ -75,6 +94,7 @@ export async function signOut() {
       await adminApi.send('admin.session.logout');
     }
   } finally {
+    await supabase.auth.signOut().catch(() => {});
     clearAdminSession();
     currentAdmin = null;
   }
