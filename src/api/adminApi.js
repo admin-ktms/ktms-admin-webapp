@@ -1,5 +1,5 @@
 import { config } from '../config/config.js';
-import { clearAdminSession, getAdminSession } from '../auth/session.js';
+import { clearAdminSession, getAdminSession, getSupabaseAccessToken } from '../auth/session.js';
 
 function traceId() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -21,7 +21,7 @@ async function request(action, payload = {}) {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'X-KTMS-Admin-Session': session,
+      'Authorization': `Bearer ${getSupabaseAccessToken()}`,\n      'X-KTMS-Admin-Session': session,
       'X-KTMS-Trace-ID': traceId(),
     },
     body: JSON.stringify({ action, ...payload }),
