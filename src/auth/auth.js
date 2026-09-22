@@ -41,8 +41,8 @@ export const auth = Object.freeze({
     return loginService('request', { email });
   },
 
-  async verifyOtp(email, token) {
-    const data = await loginService('verify', { email, token });
+  async verifyOtp(email, ktmsToken, supabaseToken) {
+    const data = await loginService('verify', { email, ktmsToken, supabaseToken });
     setAdminSession({ sessionToken: data.sessionToken, adminSessionExpiresAt: data.adminSessionExpiresAt, accessToken: data.accessToken, accessTokenExpiresAt: data.expiresAt, refreshToken: data.refreshToken });
     currentAdmin = data.admin;
     return data.admin;
