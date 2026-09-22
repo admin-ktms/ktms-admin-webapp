@@ -1,0 +1,48 @@
+.ktms-card {
+  background: var(--ktms-secondary-bg);
+  border: 1px solid var(--ktms-border);
+  border-radius: var(--radius-md);
+}
+
+.ktms-button {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  background: var(--ktms-primary);
+  color: #080A0F;
+  font-weight: 700;
+}
+
+.ktms-button:hover {
+  filter: brightness(1.08);
+}
+
+.ktms-button--secondary {
+  background: transparent;
+  border-color: var(--ktms-border);
+  color: var(--ktms-foreground);
+}
+
+.ktms-input {
+  width: 100%;
+  border: 1px solid var(--ktms-border);
+  border-radius: var(--radius-sm);
+  background: var(--ktms-input);
+  color: var(--ktms-foreground);
+  padding: 11px 12px;
+}
+
+.ktms-input:focus {
+  outline: 2px solid var(--ktms-primary);
+  outline-offset: 1px;
+}
+
+.ktms-status {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ktms-border);
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: var(--ktms-secondary);
+  font-size: 12px;
+}
