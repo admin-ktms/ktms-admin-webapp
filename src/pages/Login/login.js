@@ -1,4 +1,5 @@
 import { auth } from '../../auth/auth.js';
+import { navigate } from '../../app/navigation.js';
 
 function escapeHtml(value = '') {
   return String(value)
@@ -109,9 +110,7 @@ function renderOtp(email) {
 
     try {
       await auth.verifyOtp(email, token);
-      // Move back into the existing Admin App router after successful verification.
-      if (window.location.hash === '#/') window.dispatchEvent(new Event('hashchange'));
-      else window.location.hash = '/';
+      navigate('/');
     } catch (error) {
       message.className = 'auth-message auth-message--error';
       message.textContent = error.message || 'Verification failed.';
