@@ -21,7 +21,7 @@ async function request(action, payload = {}) {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      apikey: config.supabasePublishableKey,
+      apikey: config.supabaseAnonKey,
       'Authorization': `Bearer ${getSupabaseAccessToken()}`,
       'X-KTMS-Admin-Session': session,
       'X-KTMS-Trace-ID': traceId(),
