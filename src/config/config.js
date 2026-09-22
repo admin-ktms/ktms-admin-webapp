@@ -7,7 +7,7 @@ const DEFAULT_ADMIN_LOGIN_URL =
 export const config = Object.freeze({
   appName: 'KTMS Admin',
   supabaseUrl: 'https://gfokwfsqsttrjueqjojz.supabase.co',
-  supabasePublishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable__dF8ANtuBA8bW4rZQ6lYXw_3N3Xzqkg',
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmb2t3ZnNxc3R0cmp1ZXFqb2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzgxNTMsImV4cCI6MjEwNDYxNDE3M30.X1bMsMR3t4scYE46VkY_Ui3bsgKM_YXhdcHRExEqi6Y',
   adminApiUrl: import.meta.env.VITE_KTMS_ADMIN_API_URL || DEFAULT_ADMIN_API_URL,
   adminLoginUrl:
     import.meta.env.VITE_KTMS_ADMIN_LOGIN_URL || DEFAULT_ADMIN_LOGIN_URL,
