@@ -93,6 +93,7 @@ function renderLifecycle(t) {
     ['CLOSE_REGISTRATION','Close registration','KTMS validates capacity/deadline rules.'],
     ['SUSPEND','Suspend tournament','KTMS validates whether the current state can be suspended.'],
     ['REOPEN','Reopen tournament','KTMS validates whether the current state can be reopened.'],
+    ['COMPLETE','Complete tournament','KTMS validates whether the tournament is ready for completion.'],
   ];
   const content = `
     <section class="page-heading"><div><p class="eyebrow">TOURNAMENT LIFECYCLE</p><h2>Lifecycle control</h2><p>Actions are submitted to KTMS; the frontend does not recreate lifecycle rules.</p></div></section>
@@ -106,7 +107,7 @@ function renderLifecycle(t) {
     </section>
     <section class="panel">
       <div class="section-heading"><h2>Other lifecycle operations</h2></div>
-      <p class="muted">Tournament start, progression, completion, and archival have separate backend operations. They will be exposed in the appropriate module when their verified Admin API actions are available. No frontend-only endpoint is being invented here.</p>
+      <p class="muted">Tournament start and archival are not exposed as callable tournament actions by the current Admin API contract, so they are not fabricated here. Completion is exposed and is handled above through the verified Admin API action.</p>
     </section>
   `;
   document.querySelector('#app').innerHTML = renderTournamentContextShell(t,'lifecycle',content);
@@ -114,7 +115,8 @@ function renderLifecycle(t) {
     button.disabled = true;
     const action = button.dataset.action;
     try {
-      await adminApi.tournaments.action(t.tournament_id, action);
+      if (action === 'COMPLETE') await adminApi.request('tournament.complete', { tournamentId: t.tournament_id });
+      else await adminApi.tournaments.action(t.tournament_id, action);
       await renderTournamentPage(t.tournament_id,'lifecycle');
     } catch (error) {
       button.disabled = false;
