@@ -1,0 +1,1 @@
+export function renderLoadingState(label='Loading…'){return `<section class="ktms-card" style="padding:20px" aria-live="polite"><p style="margin:0;color:var(--ktms-secondary)">${label}</p></section>`}
