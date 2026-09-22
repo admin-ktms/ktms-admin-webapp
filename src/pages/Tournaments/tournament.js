@@ -1,0 +1,127 @@
+import { adminApi } from '../../api/adminApi.js';
+import { renderTournamentContextShell, esc, money } from './tournaments.js';
+
+function dateTime(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+}
+
+function info(label, value) {
+  return `<div class="info-item"><span>${esc(label)}</span><strong>${esc(value ?? '—')}</strong></div>`;
+}
+
+export async function renderTournamentPage(tournamentId, page = 'overview') {
+  const app = document.querySelector('#app');
+  app.innerHTML = '<div class="loading-screen">Loading tournament…</div>';
+  try {
+    const tournament = await adminApi.tournaments.get(tournamentId);
+    if (!tournament) throw new Error('Tournament was not found.');
+    if (page === 'settings') return renderSettings(tournament);
+    if (page === 'lifecycle') return renderLifecycle(tournament);
+    return renderOverview(tournament);
+  } catch (error) {
+    app.innerHTML = renderTournamentContextShell(
+      { tournament_id: tournamentId, tournament_name: 'Tournament unavailable', tournament_status: 'Unavailable' },
+      page,
+      `<div class="error-state"><strong>Unable to load tournament.</strong><p>${esc(error.message)}</p><a class="button button--secondary" href="#/tournaments/all">Back to tournaments</a></div>`,
+    );
+  }
+}
+
+function renderOverview(t) {
+  const s = t.operationalSummary || {};
+  const reg = s.registration || {};
+  const comp = s.competition || {};
+  const results = s.results || {};
+  const content = `
+    <section class="page-heading"><div><p class="eyebrow">TOURNAMENT OVERVIEW</p><h2>Operational snapshot</h2><p>Authoritative tournament information and current operational counts.</p></div></section>
+    <section class="stat-grid">
+      <div class="stat-card"><span>Registered players</span><strong>${reg.registeredPlayers ?? '—'} / ${reg.maximumPlayers ?? t.maximum_players ?? '—'}</strong></div>
+      <div class="stat-card"><span>Registration requests</span><strong>${reg.registrationRequests ?? '—'}</strong></div>
+      <div class="stat-card"><span>Matchdays completed</span><strong>${comp.matchdaysCompleted ?? '—'} / ${comp.matchdays ?? '—'}</strong></div>
+      <div class="stat-card"><span>Fixtures completed</span><strong>${comp.fixturesCompleted ?? '—'} / ${comp.fixtures ?? '—'}</strong></div>
+      <div class="stat-card"><span>Official results</span><strong>${results.officialResults ?? '—'}</strong></div>
+      <div class="stat-card"><span>Pending verification</span><strong>${results.pendingVerification ?? '—'}</strong></div>
+    </section>
+    <section class="panel">
+      <div class="section-heading"><h2>Tournament details</h2></div>
+      <div class="info-grid">
+        ${info('Tournament ID',t.tournament_id)}
+        ${info('Tournament type',t.tournament_type_id)}
+        ${info('Edition',t.tournament_edition)}
+        ${info('Year',t.tournament_year)}
+        ${info('Registration fee',money(t.registration_fee))}
+        ${info('Minimum age',t.minimum_age)}
+        ${info('Maximum players',t.maximum_players)}
+        ${info('Registration opens',dateTime(t.registration_open_datetime))}
+        ${info('Registration closes',dateTime(t.registration_close_datetime))}
+        ${info('Tournament starts',t.tournament_start_date)}
+        ${info('Tournament ends',t.tournament_end_date)}
+        ${info('Created',dateTime(t.created_datetime))}
+      </div>
+    </section>
+  `;
+  document.querySelector('#app').innerHTML = renderTournamentContextShell(t,'overview',content);
+}
+
+function renderSettings(t) {
+  const content = `
+    <section class="page-heading"><div><p class="eyebrow">TOURNAMENT SETTINGS</p><h2>Configuration</h2><p>Only settings with a verified KTMS administrative mutation contract will become editable here.</p></div></section>
+    <section class="panel">
+      <div class="section-heading"><h2>Current configuration</h2><span class="ktms-status">Read-only</span></div>
+      <div class="info-grid">
+        ${info('Tournament name',t.tournament_name)}
+        ${info('Tournament year',t.tournament_year)}
+        ${info('Registration fee',money(t.registration_fee))}
+        ${info('Minimum age',t.minimum_age)}
+        ${info('Maximum players',t.maximum_players)}
+        ${info('Start date',t.tournament_start_date)}
+        ${info('End date',t.tournament_end_date)}
+        ${info('Registration opens',dateTime(t.registration_open_datetime))}
+        ${info('Registration closes',dateTime(t.registration_close_datetime))}
+      </div>
+    </section>
+    <div class="notice">No verified tournament-settings mutation endpoint is currently exposed by the Admin API. The frontend will not invent one.</div>
+  `;
+  document.querySelector('#app').innerHTML = renderTournamentContextShell(t,'settings',content);
+}
+
+function renderLifecycle(t) {
+  const actions = [
+    ['OPEN_REGISTRATION','Open registration','Available only when KTMS permits reopening registration.'],
+    ['CLOSE_REGISTRATION','Close registration','KTMS validates capacity/deadline rules.'],
+    ['SUSPEND','Suspend tournament','KTMS validates whether the current state can be suspended.'],
+    ['REOPEN','Reopen tournament','KTMS validates whether the current state can be reopened.'],
+  ];
+  const content = `
+    <section class="page-heading"><div><p class="eyebrow">TOURNAMENT LIFECYCLE</p><h2>Lifecycle control</h2><p>Actions are submitted to KTMS; the frontend does not recreate lifecycle rules.</p></div></section>
+    <section class="panel">
+      <div class="section-heading"><h2>Current status</h2><span class="ktms-status">${esc(t.tournament_status)}</span></div>
+      <div class="lifecycle-actions">${actions.map(([action,label,description]) => `
+        <div class="lifecycle-row">
+          <div><strong>${label}</strong><p>${description}</p></div>
+          <button class="button button--secondary lifecycle-action" data-action="${action}">Run</button>
+        </div>`).join('')}</div>
+    </section>
+    <section class="panel">
+      <div class="section-heading"><h2>Other lifecycle operations</h2></div>
+      <p class="muted">Tournament start, progression, completion, and archival have separate backend operations. They will be exposed in the appropriate module when their verified Admin API actions are available. No frontend-only endpoint is being invented here.</p>
+    </section>
+  `;
+  document.querySelector('#app').innerHTML = renderTournamentContextShell(t,'lifecycle',content);
+  document.querySelectorAll('.lifecycle-action').forEach(button => button.addEventListener('click', async () => {
+    button.disabled = true;
+    const action = button.dataset.action;
+    try {
+      await adminApi.tournaments.action(t.tournament_id, action);
+      await renderTournamentPage(t.tournament_id,'lifecycle');
+    } catch (error) {
+      button.disabled = false;
+      const row = button.closest('.lifecycle-row');
+      const old = row.querySelector('.action-error');
+      if (old) old.remove();
+      row.insertAdjacentHTML('beforeend', `<span class="action-error">${esc(error.message)}</span>`);
+    }
+  }));
+}
