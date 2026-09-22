@@ -8,7 +8,6 @@ function traceId() {
 
 async function request(action, payload = {}) {
   const session = getAdminSession();
-
   if (!session) {
     const error = new Error('KTMS administrator session required.');
     error.code = 'ADMIN_SESSION_REQUIRED';
@@ -22,7 +21,7 @@ async function request(action, payload = {}) {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       apikey: config.supabaseAnonKey,
-      'Authorization': `Bearer ${getSupabaseAccessToken()}`,
+      Authorization: `Bearer ${getSupabaseAccessToken()}`,
       'X-KTMS-Admin-Session': session,
       'X-KTMS-Trace-ID': traceId(),
     },
@@ -30,23 +29,15 @@ async function request(action, payload = {}) {
   });
 
   const body = await response.json().catch(() => null);
-
   if (!response.ok || !body?.success) {
     if (response.status === 401) clearAdminSession();
-
-    const error = new Error(
-      body?.error?.message || `KTMS Admin API request failed (${response.status}).`,
-    );
+    const error = new Error(body?.error?.message || `KTMS Admin API request failed (${response.status}).`);
     error.status = response.status;
     error.code = body?.error?.code;
-    error.traceId =
-      body?.error?.traceId ||
-      response.headers.get('X-KTMS-Trace-ID') ||
-      null;
+    error.traceId = body?.error?.traceId || response.headers.get('X-KTMS-Trace-ID') || null;
     error.body = body;
     throw error;
   }
-
   return body.data;
 }
 
@@ -55,4 +46,12 @@ export const adminApi = Object.freeze({
   me: () => request('admin.me'),
   dashboardSummary: () => request('dashboard.summary'),
   logout: () => request('admin.session.logout'),
+
+  tournaments: {
+    list: (status = null) => request('tournament.list', status ? { status } : {}),
+    get: (tournamentId) => request('tournament.get', { tournamentId }),
+    create: (payload) => request('tournament.create', payload),
+    action: (tournamentId, tournamentAction) =>
+      request('tournament.action', { tournamentId, tournamentAction }),
+  },
 });
