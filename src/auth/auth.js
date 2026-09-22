@@ -10,7 +10,11 @@ import {
 let currentAdmin = null;
 
 async function loginService(action, payload) {
-  const response = await fetch(config.adminLoginUrl, {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  let response;
+  try {
+    response = await fetch(config.adminLoginUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -18,7 +22,14 @@ async function loginService(action, payload) {
       Accept: 'application/json',
     },
     body: JSON.stringify({ action, ...payload }),
+    signal: controller.signal,
   });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error('Administrator verification service timed out. Please try again.');
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const body = await response.json().catch(() => null);
 
