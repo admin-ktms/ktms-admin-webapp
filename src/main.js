@@ -1,0 +1,1 @@
+import'./styles/global.css';import'./styles/components.css';import'./styles/shell.css';import{startRouter}from'./app/router.js';window.addEventListener('error',e=>console.error('KTMS Admin Web App error:',e.error||e.message));window.addEventListener('unhandledrejection',e=>console.error('KTMS Admin Web App unhandled rejection:',e.reason));startRouter();
