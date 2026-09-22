@@ -1,8 +1,14 @@
 import { auth } from '../auth/auth.js';
 import { renderLogin } from '../pages/Login/login.js';
 import { renderAdminShell } from '../layout/AdminShell.js';
-import { renderTournamentsOverview, renderAllTournaments } from '../pages/Tournaments/tournaments.js';
-import { renderCreateTournament } from '../pages/Tournaments/create.js';
+import {
+  renderTournamentsOverview,
+  renderAllTournaments,
+} from '../pages/Tournaments/tournaments.js';
+import {
+  renderCreateTournament,
+  bindCreateTournamentForm,
+} from '../pages/Tournaments/create.js';
 import { renderTournamentPage } from '../pages/Tournaments/tournament.js';
 
 const routes = new Map([
@@ -27,28 +33,74 @@ export function resolvePath() {
   return window.location.hash.replace(/^#/, '') || '/';
 }
 
+function tournamentRoute(path) {
+  if (path === '/tournaments') return { type: 'overview' };
+  if (path === '/tournaments/all') return { type: 'all' };
+  if (path === '/tournaments/create') return { type: 'create' };
+
+  const match = path.match(/^\\/tournaments\\/([^/]+)(?:\\/(overview|settings|lifecycle))?$/);
+  if (!match) return null;
+
+  return {
+    type: 'selected',
+    tournamentId: decodeURIComponent(match[1]),
+    page: match[2] || 'overview',
+  };
+}
+
 export async function renderRoute() {
   const session = auth.getAdminSession();
-  if (!session) { renderLogin(); return; }
+  if (!session) {
+    renderLogin();
+    return;
+  }
 
   try {
     const admin = auth.getAdmin() || await auth.restoreSession();
-    if (!admin) { renderLogin(); return; }
+    if (!admin) {
+      renderLogin();
+      return;
+    }
 
     const path = resolvePath();
+    const tournament = tournamentRoute(path);
 
-    if (path === '/tournaments') return renderTournamentsOverview();
-    if (path === '/tournaments/all') return renderAllTournaments();
-    if (path === '/tournaments/create') return renderCreateTournament();
+    if (tournament) {
+      let content;
 
-    const match = path.match(/^\/tournaments\/([^/]+)(?:\/(overview|settings|lifecycle))?$/);
-    if (match) {
-      const tournamentId = decodeURIComponent(match[1]);
-      return renderTournamentPage(tournamentId, match[2] || 'overview');
+      if (tournament.type === 'overview') {
+        content = await renderTournamentsOverview();
+      } else if (tournament.type === 'all') {
+        content = await renderAllTournaments();
+      } else if (tournament.type === 'create') {
+        content = renderCreateTournament();
+      } else {
+        content = await renderTournamentPage(
+          tournament.tournamentId,
+          tournament.page,
+        );
+      }
+
+      document.querySelector('#app').innerHTML = renderAdminShell({
+        path,
+        content,
+      });
+
+      if (tournament.type === 'create') {
+        bindCreateTournamentForm();
+      }
+
+      return;
     }
 
     const title = path === '/' ? 'Dashboard' : routes.get(path) || 'Page not found';
-    const description = path === '/' ? 'KTMS operational overview.' : routes.get(path) ? 'This module will be implemented in the appropriate KTMS frontend phase.' : 'The requested Admin Web App route does not exist.';
+    const description =
+      path === '/'
+        ? 'KTMS operational overview.'
+        : routes.get(path)
+          ? 'This module will be implemented in the appropriate KTMS frontend phase.'
+          : 'The requested Admin Web App route does not exist.';
+
     document.querySelector('#app').innerHTML = renderAdminShell({
       path,
       content: `<section><p class="eyebrow">KTMS ADMIN</p><h1>${title}</h1><p class="muted">${description}</p><p class="muted">Signed in as ${admin.displayName || admin.email || 'Administrator'}.</p></section>`,
