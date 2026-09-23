@@ -17,16 +17,6 @@ function read() {
   }
 }
 
-function readRaw() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
 function isExpired(value) {
   return !value || Date.now() >= new Date(value).getTime();
 }
@@ -56,35 +46,6 @@ export function setAdminSession({ sessionToken, adminSessionExpiresAt }) {
     JSON.stringify({
       adminSessionToken: sessionToken,
       adminSessionExpiresAt,
-    }),
-  );
-}
-
-export function getLegacySupabaseCredentials() {
-  const session = readRaw();
-
-  if (!session?.accessToken || !session?.refreshToken) {
-    return null;
-  }
-
-  return {
-    accessToken: session.accessToken,
-    refreshToken: session.refreshToken,
-  };
-}
-
-export function clearLegacySupabaseCredentials() {
-  const session = readRaw();
-
-  if (!session?.adminSessionToken || !session?.adminSessionExpiresAt) {
-    return;
-  }
-
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      adminSessionToken: session.adminSessionToken,
-      adminSessionExpiresAt: session.adminSessionExpiresAt,
     }),
   );
 }
