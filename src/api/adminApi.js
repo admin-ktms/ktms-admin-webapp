@@ -72,12 +72,4 @@ export const adminApi = Object.freeze({
   dashboardSummary: () => request('dashboard.summary'),
   logout: () => request('admin.session.logout'),
 
-  tournaments: {
-    list: (status = null) =>
-      request('tournament.list', status ? { status } : {}),
-    get: (tournamentId) => request('tournament.get', { tournamentId }),
-    create: (payload) => request('tournament.create', payload),
-    action: (tournamentId, tournamentAction) =>
-      request('tournament.action', { tournamentId, tournamentAction }),
-  },
 });
