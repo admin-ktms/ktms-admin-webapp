@@ -2,7 +2,7 @@ import './styles/global.css';
 import './styles/components.css';
 import './styles/shell.css';
 import './styles/tournaments.css';
-import { startRouter } from './app/router.js';
+import { renderRoute, startRouter } from './app/router.js';
 import {
   bootstrapSupabaseSession,
   installAuthStateListener,
@@ -17,7 +17,7 @@ window.addEventListener('unhandledrejection', (e) =>
 );
 
 async function startApplication() {
-  installAuthStateListener();
+  installAuthStateListener(() => renderRoute());
 
   try {
     await bootstrapSupabaseSession();
