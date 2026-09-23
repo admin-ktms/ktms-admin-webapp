@@ -4,9 +4,24 @@ function read() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
+
     const session = JSON.parse(raw);
-    if (!session?.adminSessionToken || !session?.adminSessionExpiresAt) return null;
+
+    if (!session?.adminSessionToken || !session?.adminSessionExpiresAt) {
+      return null;
+    }
+
     return session;
+  } catch {
+    return null;
+  }
+}
+
+function readRaw() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
   } catch {
     return null;
   }
@@ -18,10 +33,12 @@ function isExpired(value) {
 
 export function getAdminSession() {
   const session = read();
+
   if (!session || isExpired(session.adminSessionExpiresAt)) {
     if (session) clearAdminSession();
     return null;
   }
+
   return session.adminSessionToken;
 }
 
@@ -44,20 +61,25 @@ export function setAdminSession({ sessionToken, adminSessionExpiresAt }) {
 }
 
 export function getLegacySupabaseCredentials() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const session = JSON.parse(raw);
-    if (!session?.accessToken || !session?.refreshToken) return null;
-    return { accessToken: session.accessToken, refreshToken: session.refreshToken };
-  } catch {
+  const session = readRaw();
+
+  if (!session?.accessToken || !session?.refreshToken) {
     return null;
   }
+
+  return {
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+  };
 }
 
 export function clearLegacySupabaseCredentials() {
-  const session = read();
-  if (!session) return;
+  const session = readRaw();
+
+  if (!session?.adminSessionToken || !session?.adminSessionExpiresAt) {
+    return;
+  }
+
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
