@@ -2,8 +2,10 @@ import { auth } from '../auth/auth.js';
 import { renderLogin } from '../pages/Login/login.js';
 import { renderAdminShell } from '../layout/AdminShell.js';
 import { currentPath } from './navigation.js';
+import { renderTournaments } from '../pages/Tournaments/tournaments.js';
 
 const routes = new Map([
+  ['/tournaments', 'Tournaments'],
   ['/registrations', 'Registrations'],
   ['/players', 'Players'],
   ['/payments', 'Payments'],
@@ -132,11 +134,16 @@ export async function renderRoute() {
   }
 
   try {
-    const content = renderModulePlaceholder(path, admin);
+    const content = path === '/tournaments' || path.startsWith('/tournaments/')
+      ? null
+      : renderModulePlaceholder(path, admin);
 
     if (sequence !== renderSequence || path !== resolvePath()) return;
 
-    renderShell(path, content);
+    const shell = renderShell(path, content);
+    if (shell && (path === '/tournaments' || path.startsWith('/tournaments/'))) {
+      await renderTournaments(shell.querySelector('.admin-content'), path.slice('/tournaments'.length) || '');
+    }
   } catch (error) {
     if (sequence !== renderSequence || path !== resolvePath()) return;
 
