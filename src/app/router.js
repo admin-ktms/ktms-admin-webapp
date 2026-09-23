@@ -85,7 +85,7 @@ function renderShell(path, content) {
 
   shell.querySelectorAll('.admin-nav__item').forEach((link) => {
     const href = link.getAttribute('href')?.replace(/^#/, '') || '/';
-    if (href === activePath) link.setAttribute('aria-current', 'page');
+    if (href === path) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
 
