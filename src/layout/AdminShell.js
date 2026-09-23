@@ -1,6 +1,5 @@
 const NAV_ITEMS = [
   ['Dashboard', '/'],
-  ['Tournaments', '/tournaments'],
   ['Registrations', '/registrations'],
   ['Players', '/players'],
   ['Payments', '/payments'],
@@ -18,8 +17,6 @@ const NAV_ITEMS = [
 ];
 
 export function renderAdminShell({ path, content }) {
-  const activePath = path?.startsWith('/tournaments') ? '/tournaments' : path;
-
   const nav = NAV_ITEMS.map(
     ([label, href]) =>
       `<a class="admin-nav__item" href="#${href}" ${activePath === href ? 'aria-current="page"' : ''}>${label}</a>`,
