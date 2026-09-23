@@ -32,7 +32,18 @@ export function renderAdminShell({ path, content }) {
           <span class="admin-brand-mark" aria-hidden="true"></span>
           <span>KTMS ADMIN</span>
         </a>
-        <span class="ktms-status">Administrator</span>
+
+        <div class="admin-header__actions">
+          <span class="ktms-status">Administrator</span>
+          <button
+            type="button"
+            class="admin-logout"
+            id="admin-logout"
+            aria-label="Log out of KTMS Admin"
+          >
+            Log out
+          </button>
+        </div>
       </header>
       <aside class="admin-sidebar">
         <nav class="admin-nav" aria-label="Admin navigation">${nav}</nav>
