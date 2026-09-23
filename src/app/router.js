@@ -47,6 +47,26 @@ function renderModulePlaceholder(path, admin) {
   `;
 }
 
+function bindLogoutButton(shell) {
+  const button = shell?.querySelector('#admin-logout');
+  if (!button || button.dataset.bound === 'true') return;
+
+  button.dataset.bound = 'true';
+
+  button.addEventListener('click', async () => {
+    if (button.disabled) return;
+
+    button.disabled = true;
+    button.textContent = 'Logging out…';
+
+    try {
+      await auth.signOut();
+    } finally {
+      renderLogin();
+    }
+  });
+}
+
 function renderShell(path, content) {
   const app = document.querySelector('#app');
   if (!app) return null;
@@ -55,6 +75,7 @@ function renderShell(path, content) {
   if (!shell) {
     app.innerHTML = renderAdminShell({ path, content: '' });
     shell = app.querySelector('.admin-shell');
+    bindLogoutButton(shell);
   }
 
   const adminContent = shell?.querySelector('.admin-content');
