@@ -1,7 +1,6 @@
 import './styles/global.css';
 import './styles/components.css';
 import './styles/shell.css';
-import './styles/tournaments.css';
 import { renderRoute, startRouter } from './app/router.js';
 import {
   bootstrapSupabaseSession,
