@@ -6,11 +6,6 @@ import {
   getAdminSessionExpiresAt,
   setAdminSession,
 } from './session.js';
-import {
-  bootstrapSupabaseSession,
-  setSupabaseSession,
-  signOutSupabase,
-} from '../lib/supabase.js';
 
 let currentAdmin = null;
 
@@ -24,7 +19,6 @@ async function loginService(action, payload) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: config.supabaseAnonKey,
         Accept: 'application/json',
       },
       body: JSON.stringify({ action, ...payload }),
@@ -62,8 +56,6 @@ export const auth = Object.freeze({
   async verifyOtp(email, token) {
     const data = await loginService('verify', { email, token });
 
-    await setSupabaseSession(data.accessToken, data.refreshToken);
-
     setAdminSession({
       sessionToken: data.sessionToken,
       adminSessionExpiresAt: data.adminSessionExpiresAt,
@@ -82,18 +74,28 @@ export const auth = Object.freeze({
 
   async restoreSession() {
     const session = getAdminSession();
-    if (!session) return null;
-
-    try {
-      await bootstrapSupabaseSession();
-    } catch (error) {
-      clearAdminSession();
-      throw error;
+    if (!session) {
+      currentAdmin = null;
+      return null;
     }
 
-    const admin = await adminApi.me();
-    currentAdmin = admin;
-    return admin;
+    try {
+      const admin = await adminApi.me();
+      currentAdmin = admin;
+      return admin;
+    } catch (error) {
+      if (
+        error?.status === 401 ||
+        error?.code === 'ADMIN_SESSION_EXPIRED' ||
+        error?.code === 'ADMIN_SESSION_REVOKED' ||
+        error?.code === 'ADMIN_SESSION_INVALID'
+      ) {
+        clearAdminSession();
+        currentAdmin = null;
+        return null;
+      }
+      throw error;
+    }
   },
 
   async signOut() {
@@ -104,12 +106,6 @@ export const auth = Object.freeze({
         } catch (error) {
           console.warn('KTMS administrator logout request failed:', error);
         }
-      }
-
-      try {
-        await signOutSupabase();
-      } catch (error) {
-        console.warn('Supabase administrator logout failed:', error);
       }
     } finally {
       currentAdmin = null;
