@@ -1,11 +1,9 @@
 import { auth } from '../auth/auth.js';
 import { renderLogin } from '../pages/Login/login.js';
 import { renderAdminShell } from '../layout/AdminShell.js';
-import { renderTournamentsRoute } from '../pages/Tournaments/router.js';
 import { currentPath } from './navigation.js';
 
 const routes = new Map([
-  ['/tournaments', 'Tournaments'],
   ['/registrations', 'Registrations'],
   ['/players', 'Players'],
   ['/payments', 'Payments'],
@@ -83,7 +81,6 @@ function renderShell(path, content) {
 
   adminContent.innerHTML = content;
 
-  const activePath = path.startsWith('/tournaments') ? '/tournaments' : path;
   shell.querySelectorAll('.admin-nav__item').forEach((link) => {
     const href = link.getAttribute('href')?.replace(/^#/, '') || '/';
     if (href === activePath) link.setAttribute('aria-current', 'page');
@@ -135,13 +132,7 @@ export async function renderRoute() {
   }
 
   try {
-    let content;
-
-    if (path.startsWith('/tournaments')) {
-      content = await renderTournamentsRoute(path);
-    } else {
-      content = renderModulePlaceholder(path, admin);
-    }
+    const content = renderModulePlaceholder(path, admin);
 
     if (sequence !== renderSequence || path !== resolvePath()) return;
 
