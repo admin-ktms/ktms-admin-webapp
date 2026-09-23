@@ -1,5 +1,6 @@
 const NAV_ITEMS = [
   ['Dashboard', '/'],
+  ['Tournaments', '/tournaments'],
   ['Registrations', '/registrations'],
   ['Players', '/players'],
   ['Payments', '/payments'],
