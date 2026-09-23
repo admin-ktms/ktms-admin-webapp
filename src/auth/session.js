@@ -5,7 +5,7 @@ function read() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const session = JSON.parse(raw);
-    if (!session?.adminSessionToken || !session?.accessToken || !session?.adminSessionExpiresAt) return null;
+    if (!session?.adminSessionToken || !session?.adminSessionExpiresAt) return null;
     return session;
   } catch {
     return null;
@@ -25,27 +25,12 @@ export function getAdminSession() {
   return session.adminSessionToken;
 }
 
-export function getSupabaseAccessToken() {
-  const session = read();
-  if (!session || isExpired(session.adminSessionExpiresAt)) {
-    if (session) clearAdminSession();
-    return null;
-  }
-  return session.accessToken;
-}
-
 export function getAdminSessionExpiresAt() {
   return read()?.adminSessionExpiresAt || null;
 }
 
-export function setAdminSession({
-  sessionToken,
-  adminSessionExpiresAt,
-  accessToken,
-  accessTokenExpiresAt,
-  refreshToken,
-}) {
-  if (!sessionToken || !adminSessionExpiresAt || !accessToken || !accessTokenExpiresAt) {
+export function setAdminSession({ sessionToken, adminSessionExpiresAt }) {
+  if (!sessionToken || !adminSessionExpiresAt) {
     throw new Error('KTMS did not return a complete administrator session.');
   }
 
@@ -54,9 +39,30 @@ export function setAdminSession({
     JSON.stringify({
       adminSessionToken: sessionToken,
       adminSessionExpiresAt,
-      accessToken,
-      accessTokenExpiresAt,
-      refreshToken: refreshToken || null,
+    }),
+  );
+}
+
+export function getLegacySupabaseCredentials() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    if (!session?.accessToken || !session?.refreshToken) return null;
+    return { accessToken: session.accessToken, refreshToken: session.refreshToken };
+  } catch {
+    return null;
+  }
+}
+
+export function clearLegacySupabaseCredentials() {
+  const session = read();
+  if (!session) return;
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      adminSessionToken: session.adminSessionToken,
+      adminSessionExpiresAt: session.adminSessionExpiresAt,
     }),
   );
 }
