@@ -98,7 +98,7 @@ export async function renderRoute() {
   try {
     admin = auth.getAdmin() || await auth.restoreSession();
   } catch (error) {
-    if (error?.status === 401 || error?.code === 'ADMIN_SESSION_REQUIRED') {
+    if (error?.code === 'ADMIN_SESSION_EXPIRED' || error?.code === 'ADMIN_SESSION_REVOKED') {
       renderLogin();
       return;
     }
