@@ -18,7 +18,7 @@ function isExpired(value) {
 
 export function getAdminSession() {
   const session = read();
-  if (!session || isExpired(session.adminSessionExpiresAt) || isExpired(session.accessTokenExpiresAt)) {
+  if (!session || isExpired(session.adminSessionExpiresAt)) {
     if (session) clearAdminSession();
     return null;
   }
