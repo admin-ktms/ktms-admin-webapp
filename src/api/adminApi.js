@@ -1,6 +1,5 @@
 import { config } from '../config/config.js';
 import { clearAdminSession, getAdminSession } from '../auth/session.js';
-import { getCurrentSupabaseAccessToken } from '../lib/supabase.js';
 
 function traceId() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -17,22 +16,11 @@ async function request(action, payload = {}) {
     throw error;
   }
 
-  let accessToken;
-
-  try {
-    accessToken = await getCurrentSupabaseAccessToken();
-  } catch (error) {
-    if (error?.code === 'SUPABASE_AUTH_REQUIRED') clearAdminSession();
-    throw error;
-  }
-
   const response = await fetch(config.adminApiUrl, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      apikey: config.supabaseAnonKey,
-      Authorization: `Bearer ${accessToken}`,
       'X-KTMS-Admin-Session': session,
       'X-KTMS-Trace-ID': traceId(),
     },
@@ -44,8 +32,11 @@ async function request(action, payload = {}) {
   if (!response.ok || !body?.success) {
     const terminalSession =
       response.status === 401 &&
-      (body?.error?.code === 'ADMIN_SESSION_EXPIRED' ||
-        body?.error?.code === 'ADMIN_SESSION_REVOKED');
+      (
+        body?.error?.code === 'ADMIN_SESSION_EXPIRED' ||
+        body?.error?.code === 'ADMIN_SESSION_REVOKED' ||
+        body?.error?.code === 'ADMIN_SESSION_INVALID'
+      );
 
     if (terminalSession) clearAdminSession();
 
@@ -71,10 +62,20 @@ export const adminApi = Object.freeze({
   me: () => request('admin.me'),
   dashboardSummary: () => request('dashboard.summary'),
   listTournamentTypes: () => request('tournament.types'),
-  listTournaments: (status = null) => request('tournament.list', status ? { status } : {}),
-  getTournament: (tournamentId) => request('tournament.get', { tournamentId }),
-  createTournament: (payload) => request('tournament.create', { tournamentTypeId: payload.tournamentTypeId, tournamentName: payload.tournamentName, year: Number(payload.year), startDate: payload.startDate, registrationFee: Number(payload.registrationFee), minimumAge: Number(payload.minimumAge) }),
-  tournamentAction: (tournamentId, tournamentAction) => request('tournament.action', { tournamentId, tournamentAction }),
+  listTournaments: (status = null) =>
+    request('tournament.list', status ? { status } : {}),
+  getTournament: (tournamentId) =>
+    request('tournament.get', { tournamentId }),
+  createTournament: (payload) =>
+    request('tournament.create', {
+      tournamentTypeId: payload.tournamentTypeId,
+      tournamentName: payload.tournamentName,
+      year: Number(payload.year),
+      startDate: payload.startDate,
+      registrationFee: Number(payload.registrationFee),
+      minimumAge: Number(payload.minimumAge),
+    }),
+  tournamentAction: (tournamentId, tournamentAction) =>
+    request('tournament.action', { tournamentId, tournamentAction }),
   logout: () => request('admin.session.logout'),
-
 });
