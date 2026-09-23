@@ -27,7 +27,7 @@ export function getAdminSession() {
 
 export function getSupabaseAccessToken() {
   const session = read();
-  if (!session || isExpired(session.adminSessionExpiresAt) || isExpired(session.accessTokenExpiresAt)) {
+  if (!session || isExpired(session.adminSessionExpiresAt)) {
     if (session) clearAdminSession();
     return null;
   }
