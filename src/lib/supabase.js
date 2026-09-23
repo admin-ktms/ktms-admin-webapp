@@ -17,12 +17,15 @@ export const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey,
 
 let authStateListenerInstalled = false;
 
-export function installAuthStateListener() {
+export function installAuthStateListener(onSignedOut) {
   if (authStateListenerInstalled) return;
   authStateListenerInstalled = true;
 
   supabase.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_OUT') clearAdminSession();
+    if (event !== 'SIGNED_OUT') return;
+
+    clearAdminSession();
+    if (typeof onSignedOut === 'function') onSignedOut();
   });
 }
 
