@@ -30,7 +30,8 @@ async function request(action, payload = {}) {
 
   const body = await response.json().catch(() => null);
   if (!response.ok || !body?.success) {
-    if (response.status === 401) clearAdminSession();
+    const terminalSession = response.status === 401 && (body?.error?.code === 'ADMIN_SESSION_EXPIRED' || body?.error?.code === 'ADMIN_SESSION_REVOKED');
+    if (terminalSession) clearAdminSession();
     const error = new Error(body?.error?.message || `KTMS Admin API request failed (${response.status}).`);
     error.status = response.status;
     error.code = body?.error?.code;
