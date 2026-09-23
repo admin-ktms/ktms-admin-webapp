@@ -70,6 +70,11 @@ export const adminApi = Object.freeze({
   request,
   me: () => request('admin.me'),
   dashboardSummary: () => request('dashboard.summary'),
+  listTournamentTypes: () => request('tournament.types'),
+  listTournaments: (status = null) => request('tournament.list', status ? { status } : {}),
+  getTournament: (tournamentId) => request('tournament.get', { tournamentId }),
+  createTournament: (payload) => request('tournament.create', { tournamentTypeId: payload.tournamentTypeId, tournamentName: payload.tournamentName, year: Number(payload.year), startDate: payload.startDate, registrationFee: Number(payload.registrationFee), minimumAge: Number(payload.minimumAge) }),
+  tournamentAction: (tournamentId, tournamentAction) => request('tournament.action', { tournamentId, tournamentAction }),
   logout: () => request('admin.session.logout'),
 
 });
